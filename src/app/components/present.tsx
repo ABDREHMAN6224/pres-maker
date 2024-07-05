@@ -174,8 +174,7 @@ export function Presentation() {
           setCurrentSlideIndex(updatedSlides.length - 1);
         },
       }
-    ],
-    includeCopilotReadable: true,
+    ]
   });
 
 
