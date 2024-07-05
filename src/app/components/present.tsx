@@ -176,7 +176,6 @@ export function Presentation() {
       }
     ],
     includeCopilotReadable: true,
-    includeCopilotActions: true,
   });
 
 
