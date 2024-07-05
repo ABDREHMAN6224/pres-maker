@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-zinc-900">
       <body>{children}</body>
-      <PrelineScript />
+      {/* <PrelineScript /> */}
     </html>
   );
 }

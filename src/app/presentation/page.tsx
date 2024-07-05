@@ -7,11 +7,17 @@ import { CopilotSidebar } from "@copilotkit/react-ui";
 import "@copilotkit/react-ui/styles.css"; 
 import {Presentation} from "../components/present";
 import "./styles.css";
+import { useEffect } from "react";
 
 let globalAudio: any = undefined;
 let globalAudioEnabled = false;
 
 const Demo = () => {
+
+  useEffect(() => {
+    
+  }, []);
+
   return (
     <CopilotKit url="/api/copilotkit/openai">
       <CopilotSidebar
@@ -22,11 +28,7 @@ const Demo = () => {
         }}
         clickOutsideToClose={false}
         onSubmitMessage={async (message) => {
-          if (!globalAudioEnabled) {
-            globalAudio.play();
-            globalAudio.pause();
-          }
-          globalAudioEnabled = true;
+          console.log(message)
         }}
       >
         <Presentation/>

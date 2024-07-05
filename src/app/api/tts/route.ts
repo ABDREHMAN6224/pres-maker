@@ -6,7 +6,7 @@ const openai = new OpenAI();
 
 export async function GET(req: Request): Promise<Response> {
   const url = new URL(req.url);
-  const text = url.searchParams.get("text"); // 'text' is the query parameter name
+  const text = url.searchParams.get("text");
 
   if (!text) {
     return new Response("Text parameter is missing", { status: 400 });
