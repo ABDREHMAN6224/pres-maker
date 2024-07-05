@@ -108,7 +108,7 @@ export function Presentation() {
           title:args.title,
           content: `${args.content}`,
           backgroundImage: image,
-          speech: args.speech,
+          speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
         };
         const updatedSlides = [...allSlides, newSlide];
         setAllSlides(updatedSlides);
@@ -167,7 +167,7 @@ export function Presentation() {
             title: args.title,
             content: `${args.content}`,
             backgroundImage: image,
-            speech: args.speech,
+            speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
           };
           const updatedSlides = [...allSlides, newSlide];
           setAllSlides(updatedSlides);
