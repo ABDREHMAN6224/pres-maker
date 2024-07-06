@@ -65,8 +65,7 @@ export function Presentation() {
   const getImage = async (image: string) => {
     const response = await fetch(`https://api.unsplash.com/search/photos/?client_id=beLeaSpQWOx7gFcKUOSfHERn3rrdwq0cVUm1jnDJqRQ&query=${image}`);
     const data = await response.json();
-    console.log(data)
-    return data.results[0].urls.regular
+    return data?.results[0]?.urls?.regular
   }
 
   useCopilotAction(
@@ -106,9 +105,7 @@ export function Presentation() {
       ],
 
       handler: async (args) => {
-        console.log("first")
         const image = await getImage(args.backgroundImage);
-        console.log(image)
         const newSlide: Slide = {
           title:args.title,
           content: `${args.content}`,
@@ -116,7 +113,6 @@ export function Presentation() {
           speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
         };
         const updatedSlides = [...allSlides, newSlide];
-        console.log(updatedSlides.map((slide) => slide.content).join(" "))
         setAllSlides(updatedSlides);
         setCurrentSlideIndex(updatedSlides.length - 1);
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -168,7 +164,6 @@ export function Presentation() {
           },
         ],
         handler: async (args) => {
-          console.log("here here")
           const image = await getImage(args.backgroundImage);
           const newSlide: Slide = {
             title: args.title,
