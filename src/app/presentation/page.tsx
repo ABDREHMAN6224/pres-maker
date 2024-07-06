@@ -12,6 +12,7 @@ import React, { useEffect } from "react";
 
 const Demo = () => {
   const [numSlides, setNumSlides] = React.useState(5);
+  const [inProgress, setInProgress] = React.useState(true);
 
   return (
     <CopilotKit url="/api/copilotkit/openai">
@@ -23,15 +24,17 @@ const Demo = () => {
         }}
         clickOutsideToClose={false}
         onSubmitMessage={async (message) => {
-            // searchmessage for number of slides user asked for  ....
             const numbers = message.match(/\d+/g);
             if (numbers && numbers.length > 0) {
               setNumSlides(parseInt(numbers[0]));
             }
 
         }}
+        onInProgress={(status) => {
+          setInProgress(status);
+        }}
       >
-        <Presentation numSlides={numSlides}/>
+        <Presentation numSlides={numSlides} done={inProgress}/>
       </CopilotSidebar>
     </CopilotKit>
   );

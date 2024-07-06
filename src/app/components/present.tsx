@@ -23,7 +23,6 @@ const convertToPPtTextFromMarkdown = (str: string) => {
   return str.replace(/\n/g, "\n\n").replace(/#/g, "").replace(/\*/g, "-").replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r").replace(/\\\\\\\\/g, '').replace(/\\'/g, "'");
 }
 
-let timeout: NodeJS.Timeout;
 const convertToPPT = (slides: Slide[]) => {
   const pptx = new pptxgen();
   slides.forEach((slide) => {
@@ -32,16 +31,18 @@ const convertToPPT = (slides: Slide[]) => {
    const lines = slide.content.split('\n').filter(line => line.trim());
    const title = lines[0].trim();
    const content = lines.slice(1).map(line => line.trim()).join('\n');
+   const explanation = slide.speech;
 
    slidePPt.addImage({ path: slide.backgroundImage, x: 0, y: 0, w: "100%", h: "100%" });
     slidePPt.addText(convertToPPtTextFromMarkdown(title), { x: 1, y: 1, w: "80%", h: 1, fontSize: 18, color: "90EE90" });
     slidePPt.addText(convertToPPtTextFromMarkdown(content), { x: 1, y: 2, w: "80%", h: 1, fontSize: 12, color: "90EE90" });
+    slidePPt.addText(convertToPPtTextFromMarkdown(explanation), { x: 1, y: 3, w: "80%", h: 1, fontSize: 12, color: "90EE90" });
   });
   pptx.writeFile({fileName:"presentation.pptx"});
 
 }
 
-export function Presentation({numSlides=8}) {
+export function Presentation({numSlides=8,done=true}) {
   const [allSlides, setAllSlides] = useState<Slide[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
 
@@ -76,7 +77,6 @@ export function Presentation({numSlides=8}) {
     const data = await response.json();
     return data?.results[0]?.urls?.regular
   }
-  const [done,setDone] = useState(false);
 
   useCopilotAction(
     {
@@ -105,9 +105,9 @@ export function Presentation({numSlides=8}) {
         {
           name: "speech",
           type: "string",
-          description: "The text to read while presenting the slide. Should be distinct from the slide's content, " +
+          description: "The text to read while presenting the slide. Should be detailed and distinct from the slide's content, " +
           "and can include additional context, references, etc. Will be read aloud as-is. " +
-          "Should be a few sentences long, clear, and smooth to read." +
+          "Should be a some sentences long, clear, and smooth to read." +
           "DO NOT include meta-commentary, such as 'in this slide', 'we explore', etc.",
           required: true,
         },
@@ -131,24 +131,6 @@ export function Presentation({numSlides=8}) {
 
 
   useEffect(() => {
-    if (timeout) {
-      clearTimeout(timeout);
-    }
-    setDone(false);
-    
-    timeout = setTimeout(() => {
-      if (allSlides.length > 0) {
-        if (!done) {
-          setDone(true);
-        }
-      }
-    }, 3000);
-    
-    return () => clearTimeout(timeout);
-  }, [allSlides]);
-
-  useEffect(() => {
-    console.log("first",done,"slides",allSlides.length)
     async function generateSlides(number:number){
       setRandomSlideTaskRunning(true);
       for(let i=0;i<number;i++){
@@ -157,9 +139,8 @@ export function Presentation({numSlides=8}) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
       setRandomSlideTaskRunning(false);
-      setDone(false);
     }
-    if(done){
+    if(!done && allSlides.length>0){
       generateSlides(numSlides);
     }
   },[done])
