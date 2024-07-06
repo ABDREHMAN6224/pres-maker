@@ -129,17 +129,26 @@ export function Presentation({numSlides=8}) {
     },
   );
 
+
   useEffect(() => {
-    clearTimeout(timeout);
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+    setDone(false);
+    
     timeout = setTimeout(() => {
-      if(allSlides.length>0){
-        setDone(true);
+      if (allSlides.length > 0) {
+        if (!done) {
+          setDone(true);
+        }
       }
     }, 3000);
+    
+    return () => clearTimeout(timeout);
   }, [allSlides]);
 
   useEffect(() => {
-    console.log("first",done)
+    console.log("first",done,"slides",allSlides.length)
     async function generateSlides(number:number){
       setRandomSlideTaskRunning(true);
       for(let i=0;i<number;i++){
