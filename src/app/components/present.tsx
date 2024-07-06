@@ -10,6 +10,9 @@ import "./../presentation/styles.css";
 import Markdown from "react-markdown";
 import pptxgen from "pptxgenjs";
 import { FaChevronCircleLeft, FaChevronCircleRight, FaDownload, FaPlus, FaTrash, FaTruckLoading } from "react-icons/fa";
+import { renderToString } from "react-dom/server";
+import html2canvas from "html2canvas";
+import ReactDOM from "react-dom";
 
 
 
@@ -19,30 +22,35 @@ interface Slide {
   backgroundImage: string;
   speech: string;
 }
-const convertToPPtTextFromMarkdown = (str: string) => {
-  return str.replace(/\n/g, "\n\n").replace(/#/g, "").replace(/\*/g, "-").replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r").replace(/\\\\\\\\/g, '').replace(/\\'/g, "'");
-}
 
-const convertToPPT = (slides: Slide[]) => {
-  const pptx = new pptxgen();
-  slides.forEach((slide) => {
-   let slidePPt= pptx.addSlide();
-
-   const lines = slide.content.split('\n').filter(line => line.trim());
-   const title = lines[0].trim();
-   const content = lines.slice(1).map(line => line.trim()).join('\n');
-   const explanation = slide.speech;
-
-   slidePPt.addImage({ path: slide.backgroundImage, x: 0, y: 0, w: "100%", h: "100%" });
-    slidePPt.addText(convertToPPtTextFromMarkdown(title), { x: 1, y: 1, w: "80%", h: 1, fontSize: 18, color: "90EE90" });
-    slidePPt.addText(convertToPPtTextFromMarkdown(content), { x: 1, y: 2, w: "80%", h: 1, fontSize: 12, color: "90EE90" });
-    slidePPt.addText(convertToPPtTextFromMarkdown(explanation), { x: 1, y: 3, w: "80%", h: 1, fontSize: 12, color: "90EE90" });
-  });
-  pptx.writeFile({fileName:"presentation.pptx"});
-
-}
 
 export function Presentation({numSlides=8,done=true}) {
+
+
+const convertToPPT = async (slides:Slide[]) => {
+  const pptx = new pptxgen();
+  const tempContainer = document.getElementById("display-slide")?.firstChild!
+  for (let index = 0; index < slides.length; index++) {
+    setCurrentSlideIndex(index);
+    document.getElementsByClassName("speech-btn")[0]?.classList.add("hidden");
+    let slidePPT = pptx.addSlide();
+    const canvas = await html2canvas(tempContainer as HTMLElement,{useCORS:true});
+    const imgData = canvas.toDataURL("image/png");
+      
+      slidePPT.addImage({
+        data: imgData,
+        x: 0,
+        y: 0,
+        w: "100%",
+        h: "100%",
+      })
+
+    document.getElementsByClassName("speech-btn")[0]?.classList.remove("hidden");
+  }
+  await pptx.writeFile({ fileName: "presentation.pptx" });
+};
+
+
   const [allSlides, setAllSlides] = useState<Slide[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
 
@@ -86,7 +94,7 @@ export function Presentation({numSlides=8,done=true}) {
   useCopilotAction(
     {
       name: "createNewPowerPointSlides",
-      description:"Add a slide after all the existing slides.  This function is called minimum 10 times to add multiple slides.",
+      description:"Add a slide after all the existing slides.  This function is called multiple times to add multiple slides.",
       parameters: [
         {
           name: "title",
@@ -104,7 +112,7 @@ export function Presentation({numSlides=8,done=true}) {
         {
           name: "backgroundImage",
           type: "string",
-          description:"What to display in the background of the slide (i.e. 'dog' or 'house').",
+          description:"What image to use as the background of the slide. Should be a single word, like 'nature', 'technology', 'business', etc.",
           required: true,
         },
         {
@@ -119,8 +127,8 @@ export function Presentation({numSlides=8,done=true}) {
       ],
 
       handler: async (args) => {
-        const image = await getImage(args.backgroundImage);
-        console.log(args)
+        const image = await getImage(args.backgroundImage.replace(/\.[^/.]+$/, ""));
+        console.log(image, args.backgroundImage.replace(/\.[^/.]+$/, ""), args.backgroundImage)
         const newSlide: Slide = {
           title:args.title,
           content: `${args.content}`,
@@ -140,8 +148,15 @@ export function Presentation({numSlides=8,done=true}) {
     async function generateSlides(number:number){
       setRandomSlideTaskRunning(true);
       for(let i=0;i<number;i++){
+        console.log(i)
         if(allSlides.length>=numSlides) break;
-        await addSlide.run(context);
+        try {
+          
+          await addSlide.run(context);
+        } catch (error) {
+          console.error(error);
+          continue;
+        }
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
       setRandomSlideTaskRunning(false);
@@ -160,57 +175,7 @@ export function Presentation({numSlides=8,done=true}) {
   
 
   const addSlide = new CopilotTask({
-    instructions: "Make the next slide related to the overall topic of the presentation. It will be inserted after the current slide.",
-    // actions:[
-    //   {
-    //     name: "appendSlides",
-    //     description: "Make the next slide related to the overall topic of the presentation. It will be inserted after the current slide.",
-    //     parameters: [
-    //       {
-    //         name: "title",
-    //         type: "string",
-    //         description:"The topic to display in the presentation slide. Use simple markdown to outline your speech, like a headline.",
-    //         required: true,
-    //       },
-    //       {
-    //         name: "content",
-    //         type: "string",
-    //         description: "The content of the slide. MUST consist of a title, then an empty newline, then a few bullet points. Always between 3-5 bullet points - no more, no less."
-    //         ,
-    //         required: true,
-    //       },
-    //       {
-    //         name: "backgroundImage",
-    //         type: "string",
-    //         description:"What to display in the background of the slide (i.e. 'dog' or 'house').",
-    //         required: true,
-    //       },
-    //       {
-    //         name: "speech",
-    //         type: "string",
-    //         description: "The text to read while presenting the slide. Should be distinct from the slide's content, " +
-    //         "and can include additional context, references, etc. Will be read aloud as-is. " +
-    //         "Should be a few sentences long, clear, and smooth to read." +
-    //         "DO NOT include meta-commentary, such as 'in this slide', 'we explore', etc.",
-    //         required: true,
-    //       },
-    //     ],
-  
-    //     handler: async (args) => {
-    //       const image = await getImage(args.backgroundImage);
-    //       const newSlide: Slide = {
-    //         title:args.title,
-    //         content: `${args.content}`,
-    //         backgroundImage: image,
-    //         speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
-    //       };
-    //       const updatedSlides = [...allSlides, newSlide];
-    //       setAllSlides(updatedSlides);
-    //       setCurrentSlideIndex(updatedSlides.length - 1);
-    //       await new Promise((resolve) => setTimeout(resolve, 500));
-    //     }
-    //   },
-    // ]
+    instructions: "Make the next slide related to the overall topic of the presentation ("+allSlides[0]?.title+")."+ " It will be inserted after the current slide.",
   });
 
 
@@ -296,11 +261,13 @@ export function Presentation({numSlides=8,done=true}) {
         </div>
 
       </div>
-        <div className="h-full w-full flex overflow-auto items-center justify-center">
+        <div className="relative h-full w-full flex overflow-auto items-center justify-center"
+          id="display-slide"
+        >
           {allSlides.length > 0 ? (
             <div className="relative w-full h-[80%] flex flex-col items-center justify-center border border-gray-400 rounded-md"
               style={{
-                backgroundImage: `url(${allSlides[currentSlideIndex].backgroundImage})`,
+                backgroundImage:allSlides[currentSlideIndex].backgroundImage && `url(${allSlides[currentSlideIndex].backgroundImage})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 backdropFilter: "blur(4px) grayscale(0.5) brightness(0.7)",
@@ -309,7 +276,8 @@ export function Presentation({numSlides=8,done=true}) {
             >
               <div className="absolute bottom-[50px] right-4 -translate-x-1/2  bg-black bg-opacity-50 flex items-center justify-center">
                 <button
-                  className="bg-blue-500 text-white font-bold py-2 px-4 rounded"
+
+                  className="bg-blue-500 text-white font-bold py-2 px-4 rounded speech-btn"
                   onClick={()=>playSpeech(allSlides[currentSlideIndex].speech)}>
                   Play Notes
                 </button>
