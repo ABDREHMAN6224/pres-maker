@@ -12,6 +12,7 @@ import pptxgen from "pptxgenjs";
 import { FaChevronCircleLeft, FaChevronCircleRight, FaPlus, FaTrash, FaTruckLoading } from "react-icons/fa";
 
 
+let timeout;
 
 interface Slide {
   title: string;
@@ -69,6 +70,9 @@ export function Presentation({numSlides=8}) {
 
   const getImage = async (image: string) => {
     const response = await fetch(`https://api.unsplash.com/search/photos/?client_id=beLeaSpQWOx7gFcKUOSfHERn3rrdwq0cVUm1jnDJqRQ&query=${image}`);
+    if (!response.ok) {
+      return "";
+    }
     const data = await response.json();
     return data?.results[0]?.urls?.regular
   }
@@ -117,7 +121,6 @@ export function Presentation({numSlides=8}) {
           backgroundImage: image,
           speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
         };
-        console.log("first")
         const updatedSlides = [...allSlides, newSlide];
         setAllSlides(updatedSlides);
         setCurrentSlideIndex(updatedSlides.length - 1);
@@ -127,15 +130,16 @@ export function Presentation({numSlides=8}) {
   );
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if(allSlides.length>0 && done === false){
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      if(allSlides.length>0){
         setDone(true);
       }
-    }, 2000);
-    return () => clearTimeout(timeout);
+    }, 1000);
   }, [allSlides]);
 
   useEffect(() => {
+    console.log("first",done)
     async function generateSlides(number:number){
       setRandomSlideTaskRunning(true);
       for(let i=0;i<number && number>allSlides.length;i++){
@@ -159,6 +163,56 @@ export function Presentation({numSlides=8}) {
 
   const addSlide = new CopilotTask({
     instructions: "Make the next slide related to the overall topic of the presentation. It will be inserted after the current slide.",
+    // actions:[
+    //   {
+    //     name: "appendSlides",
+    //     description: "Make the next slide related to the overall topic of the presentation. It will be inserted after the current slide.",
+    //     parameters: [
+    //       {
+    //         name: "title",
+    //         type: "string",
+    //         description:"The topic to display in the presentation slide. Use simple markdown to outline your speech, like a headline.",
+    //         required: true,
+    //       },
+    //       {
+    //         name: "content",
+    //         type: "string",
+    //         description: "The content of the slide. MUST consist of a title, then an empty newline, then a few bullet points. Always between 3-5 bullet points - no more, no less."
+    //         ,
+    //         required: true,
+    //       },
+    //       {
+    //         name: "backgroundImage",
+    //         type: "string",
+    //         description:"What to display in the background of the slide (i.e. 'dog' or 'house').",
+    //         required: true,
+    //       },
+    //       {
+    //         name: "speech",
+    //         type: "string",
+    //         description: "The text to read while presenting the slide. Should be distinct from the slide's content, " +
+    //         "and can include additional context, references, etc. Will be read aloud as-is. " +
+    //         "Should be a few sentences long, clear, and smooth to read." +
+    //         "DO NOT include meta-commentary, such as 'in this slide', 'we explore', etc.",
+    //         required: true,
+    //       },
+    //     ],
+  
+    //     handler: async (args) => {
+    //       const image = await getImage(args.backgroundImage);
+    //       const newSlide: Slide = {
+    //         title:args.title,
+    //         content: `${args.content}`,
+    //         backgroundImage: image,
+    //         speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
+    //       };
+    //       const updatedSlides = [...allSlides, newSlide];
+    //       setAllSlides(updatedSlides);
+    //       setCurrentSlideIndex(updatedSlides.length - 1);
+    //       await new Promise((resolve) => setTimeout(resolve, 500));
+    //     }
+    //   },
+    // ]
   });
 
 
