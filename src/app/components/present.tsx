@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import "./../presentation/styles.css";
 import Markdown from "react-markdown";
 import pptxgen from "pptxgenjs";
-import { FaChevronCircleLeft, FaChevronCircleRight, FaPlus, FaTrash, FaTruckLoading } from "react-icons/fa";
+import { FaChevronCircleLeft, FaChevronCircleRight, FaDownload, FaPlus, FaTrash, FaTruckLoading } from "react-icons/fa";
 
 
 let timeout;
@@ -228,7 +228,7 @@ export function Presentation({numSlides=8}) {
 
   return (
     <div className="w-full h-lvh max-h-screen overflow-hidden ">
-      <div className="flex justify-between items-center px-4 py-3 bg-cyan-900">
+      <div className="flex justify-between items-center px-4 py-3 bg-cyan-900 flex-wrap gap-3">
         <div className="flex gap-4 items-center">
           <button
           disabled={currentSlideIndex === 0 || randomSlideTaskRunning}
@@ -250,7 +250,7 @@ export function Presentation({numSlides=8}) {
 
             className=" bg-green-500 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => convertToPPT(allSlides)}>
-            Download PPT
+            <FaDownload />
           </button>
         </div>
         <div className="flex gap-4">
