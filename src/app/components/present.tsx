@@ -135,7 +135,7 @@ export function Presentation({numSlides=8}) {
       if(allSlides.length>0){
         setDone(true);
       }
-    }, 1000);
+    }, 3000);
   }, [allSlides]);
 
   useEffect(() => {
