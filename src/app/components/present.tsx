@@ -70,12 +70,17 @@ export function Presentation({numSlides=8,done=true}) {
 
 
   const getImage = async (image: string) => {
-    const response = await fetch(`https://api.unsplash.com/search/photos/?client_id=beLeaSpQWOx7gFcKUOSfHERn3rrdwq0cVUm1jnDJqRQ&query=${image}`);
-    if (!response.ok) {
+    try {
+      
+      const response = await fetch(`https://api.unsplash.com/search/photos/?client_id=beLeaSpQWOx7gFcKUOSfHERn3rrdwq0cVUm1jnDJqRQ&query=${image}`);
+      if (!response.ok) {
+        return "";
+      }
+      const data = await response.json();
+      return data?.results[0]?.urls?.regular
+    } catch (error) {
       return "";
     }
-    const data = await response.json();
-    return data?.results[0]?.urls?.regular
   }
 
   useCopilotAction(
@@ -115,6 +120,7 @@ export function Presentation({numSlides=8,done=true}) {
 
       handler: async (args) => {
         const image = await getImage(args.backgroundImage);
+        console.log(args)
         const newSlide: Slide = {
           title:args.title,
           content: `${args.content}`,
@@ -140,7 +146,7 @@ export function Presentation({numSlides=8,done=true}) {
       }
       setRandomSlideTaskRunning(false);
     }
-    if(!done && allSlides.length>0){
+    if(!done && allSlides.length>0 && allSlides.length<numSlides){
       generateSlides(numSlides);
     }
   },[done])
