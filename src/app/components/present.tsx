@@ -180,7 +180,7 @@ const convertToPPT = async (slides:Slide[]) => {
   
 
   const addSlide = new CopilotTask({
-    instructions: "Make the next slide related to the overall topic of the presentation ("+allSlides[0]?.title+")."+ " It will be inserted after the current slide.",
+    instructions: "Make the next slide related to the overall content of the presentation (\n\n"+ allSlides.map(s=>s.content).join(", ")+"."+"\n\n"+")."+ " It will be inserted after the last slide.",
   });
 
 
