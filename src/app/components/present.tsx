@@ -12,7 +12,6 @@ import pptxgen from "pptxgenjs";
 import { FaChevronCircleLeft, FaChevronCircleRight, FaDownload, FaPlus, FaTrash, FaTruckLoading } from "react-icons/fa";
 
 
-let timeout;
 
 interface Slide {
   title: string;
@@ -24,6 +23,7 @@ const convertToPPtTextFromMarkdown = (str: string) => {
   return str.replace(/\n/g, "\n\n").replace(/#/g, "").replace(/\*/g, "-").replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r").replace(/\\\\\\\\/g, '').replace(/\\'/g, "'");
 }
 
+let timeout: NodeJS.Timeout;
 const convertToPPT = (slides: Slide[]) => {
   const pptx = new pptxgen();
   slides.forEach((slide) => {
