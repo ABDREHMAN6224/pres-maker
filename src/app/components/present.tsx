@@ -20,16 +20,21 @@ interface Slide {
   speech: string;
 }
 const convertToPPtTextFromMarkdown = (str: string) => {
-  return str.replace(/\n/g, "\n\n").replace(/#/g, "").replace(/\*/g, "-");
+  return str.replace(/\n/g, "\n\n").replace(/#/g, "").replace(/\*/g, "-").replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r").replace(/\\\\\\\\/g, '').replace(/\\'/g, "'");
 }
 
 const convertToPPT = (slides: Slide[]) => {
   const pptx = new pptxgen();
   slides.forEach((slide) => {
    let slidePPt= pptx.addSlide();
+
+   const lines = slide.content.split('\n').filter(line => line.trim());
+   const title = lines[0].trim();
+   const content = lines.slice(1).map(line => line.trim()).join('\n');
+
    slidePPt.addImage({ path: slide.backgroundImage, x: 0, y: 0, w: "100%", h: "100%" });
-    slidePPt.addText(convertToPPtTextFromMarkdown(slide.title), { x: 1, y: 1, w: "80%", h: 1, fontSize: 18, color: "90EE90" });
-    slidePPt.addText(convertToPPtTextFromMarkdown(slide.content), { x: 1, y: 2, w: "80%", h: 1, fontSize: 12, color: "90EE90" });
+    slidePPt.addText(convertToPPtTextFromMarkdown(title), { x: 1, y: 1, w: "80%", h: 1, fontSize: 18, color: "90EE90" });
+    slidePPt.addText(convertToPPtTextFromMarkdown(content), { x: 1, y: 2, w: "80%", h: 1, fontSize: 12, color: "90EE90" });
   });
   pptx.writeFile({fileName:"presentation.pptx"});
 
@@ -111,8 +116,10 @@ export function Presentation() {
           speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
         };
         const updatedSlides = [...allSlides, newSlide];
+        console.log(updatedSlides.map((slide) => slide.content).join(" "))
         setAllSlides(updatedSlides);
         setCurrentSlideIndex(updatedSlides.length - 1);
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
     },
@@ -121,7 +128,7 @@ export function Presentation() {
   
 
   function formatSlideContent(str:string) {
-    const items = str.split('\\n').map(item => `${item.trim()}`).join('\n');
+    const items = str.split('\\n').map(item => `${item.trim().replace(/\\\\\\\\/g, '').replace(/\\'/g, "'")}`).join('\n');
     return items;
   }
 
