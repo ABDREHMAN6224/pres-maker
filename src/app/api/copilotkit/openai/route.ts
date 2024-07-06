@@ -4,7 +4,6 @@ import {
 } from "@copilotkit/backend";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export const runtime = "edge";
 
 export async function POST(req: Request): Promise<Response> {
   const copilotKit = new CopilotRuntime();

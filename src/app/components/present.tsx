@@ -58,9 +58,14 @@ export function Presentation() {
   }
 
   useCopilotReadable({
-    description: "current slides=> "+allSlides.map((slide) => slide.content).join("\n"),
-    value: allSlides.map((slide) => slide.content).join("\n"),
+    description: "These are all slides",
+    value: allSlides,
   })
+  useCopilotReadable({
+    description: "This is the current slide",
+    value: allSlides[currentSlideIndex],
+  });
+
 
   const getImage = async (image: string) => {
     const response = await fetch(`https://api.unsplash.com/search/photos/?client_id=beLeaSpQWOx7gFcKUOSfHERn3rrdwq0cVUm1jnDJqRQ&query=${image}`);
@@ -71,8 +76,7 @@ export function Presentation() {
   useCopilotAction(
     {
       name: "createNewPowerPointSlides",
-      description:
-      "Add a slide after all the existing slides. Call this function multiple times (atleast 8 times)  to add multiple slides.",
+      description:"Add a slide after all the existing slides.  This function is called minimum 10 times to add multiple slides.",
       parameters: [
         {
           name: "title",
@@ -112,6 +116,7 @@ export function Presentation() {
           backgroundImage: image,
           speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
         };
+        console.log("first")
         const updatedSlides = [...allSlides, newSlide];
         setAllSlides(updatedSlides);
         setCurrentSlideIndex(updatedSlides.length - 1);
@@ -131,52 +136,9 @@ export function Presentation() {
   
 
   const addSlide = new CopilotTask({
-    instructions: "Create a new PowerPoint slide",
-    actions:[
-      {
-        name: "createNewPowerPointSlides",
-        description: "Create a slide for a PowerPoint presentation. Call this function multiple times to present multiple slides.",
-        parameters: [
-          {
-            name: "title",
-            type: "string",
-            description: "The topic to display in the presentation slide. Use simple markdown to outline your speech, like a headline.",
-            required: true,
-          },
-          {
-            name: "content",
-            type: "string",
-            description: "The content of the slide. MUST consist of a title, then an empty newline, then a few bullet points. Always between 3-5 bullet points - no more, no less."
-            ,
-            required: true,
-          },
-          {
-            name: "backgroundImage",
-            type: "string",
-            description: "What to display in the background of the slide (i.e. 'dog' or 'house').",
-            required: true,
-          },
-          {
-            name: "speech",
-            type: "string",
-            description: "The speech to be spoken when the slide is displayed.",
-            required: true,
-          },
-        ],
-        handler: async (args) => {
-          const image = await getImage(args.backgroundImage);
-          const newSlide: Slide = {
-            title: args.title,
-            content: `${args.content}`,
-            backgroundImage: image,
-            speech: args.speech.replace(/\\n/g, "\n").replace(/\\t/g, "\t").replace(/\\r/g, "\r"),
-          };
-          const updatedSlides = [...allSlides, newSlide];
-          setAllSlides(updatedSlides);
-          setCurrentSlideIndex(updatedSlides.length - 1);
-        },
-      }
-    ]
+    instructions: "Create a new PowerPoint slide with a title, content, background image, and speech. The content should consist of a title, an empty newline, and a few bullet points. The speech should be a few sentences long, clear, and smooth to read. The content must align with current slides",
+    includeCopilotActions:true,
+    includeCopilotReadable:true
   });
 
 
@@ -186,8 +148,9 @@ export function Presentation() {
   const [randomSlideTaskRunning, setRandomSlideTaskRunning] = useState(false);
 
   const goBack = () => setCurrentSlideIndex((prev) => Math.max(0, prev - 1));
-  const goForward = () =>
+  const goForward = () =>{
     setCurrentSlideIndex((prev) => Math.min(allSlides.length - 1, prev + 1));
+  }
 
   return (
     <div className="w-full h-lvh max-h-screen overflow-hidden ">
