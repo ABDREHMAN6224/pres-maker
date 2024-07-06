@@ -32,8 +32,8 @@ const convertToPPT = async (slides:Slide[]) => {
   const tempContainer = document.getElementById("display-slide")?.firstChild!
   setCurrentSlideIndex(0);
   let index=0;
-  // for (let index = 0; index < slides.length; index++) {
   while(index<slides.length){
+    await new Promise((resolve) => setTimeout(resolve, 500));
     document.getElementsByClassName("speech-btn")[0]?.classList.add("hidden");
     let slidePPT = pptx.addSlide();
     const canvas = await html2canvas(tempContainer as HTMLElement,{useCORS:true});
@@ -51,7 +51,6 @@ const convertToPPT = async (slides:Slide[]) => {
     
     document.getElementsByClassName("speech-btn")[0]?.classList.remove("hidden");
     index++;
-    await new Promise((resolve) => setTimeout(resolve, 500));
   }
   await pptx.writeFile({ fileName: "presentation.pptx" });
 };
