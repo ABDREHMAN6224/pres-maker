@@ -142,8 +142,10 @@ export function Presentation({numSlides=8}) {
     console.log("first",done)
     async function generateSlides(number:number){
       setRandomSlideTaskRunning(true);
-      for(let i=0;i<number && number>allSlides.length;i++){
+      for(let i=0;i<number;i++){
+        if(allSlides.length>=numSlides) break;
         await addSlide.run(context);
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
       setRandomSlideTaskRunning(false);
       setDone(false);
