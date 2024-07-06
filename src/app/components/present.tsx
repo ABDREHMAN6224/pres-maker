@@ -30,22 +30,28 @@ export function Presentation({numSlides=8,done=true}) {
 const convertToPPT = async (slides:Slide[]) => {
   const pptx = new pptxgen();
   const tempContainer = document.getElementById("display-slide")?.firstChild!
-  for (let index = 0; index < slides.length; index++) {
-    setCurrentSlideIndex(index);
+  setCurrentSlideIndex(0);
+  let index=0;
+  // for (let index = 0; index < slides.length; index++) {
+  while(index<slides.length){
     document.getElementsByClassName("speech-btn")[0]?.classList.add("hidden");
     let slidePPT = pptx.addSlide();
     const canvas = await html2canvas(tempContainer as HTMLElement,{useCORS:true});
     const imgData = canvas.toDataURL("image/png");
-      
-      slidePPT.addImage({
-        data: imgData,
-        x: 0,
-        y: 0,
-        w: "100%",
-        h: "100%",
-      })
-
+    
+    slidePPT.addImage({
+      data: imgData,
+      x: 0,
+      y: 0,
+      w: "100%",
+      h: "100%",
+    })
+    
+    setCurrentSlideIndex(Math.min(slides.length - 1, index + 1));
+    
     document.getElementsByClassName("speech-btn")[0]?.classList.remove("hidden");
+    index++;
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
   await pptx.writeFile({ fileName: "presentation.pptx" });
 };
