@@ -117,7 +117,7 @@ const convertToPPT = async (slides:Slide[]) => {
         {
           name: "backgroundImage",
           type: "string",
-          description:"What image to use as the background of the slide. Should be a single word, like 'nature', 'technology', 'business', etc.",
+          description:"What image to use as the background of the slide. Should be a single word, like 'nature','car','earth' etc.",
           required: true,
         },
         {
