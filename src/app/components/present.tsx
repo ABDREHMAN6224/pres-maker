@@ -40,7 +40,7 @@ const convertToPPT = (slides: Slide[]) => {
 
 }
 
-export function Presentation() {
+export function Presentation({numSlides=8}) {
   const [allSlides, setAllSlides] = useState<Slide[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
 
@@ -72,6 +72,7 @@ export function Presentation() {
     const data = await response.json();
     return data?.results[0]?.urls?.regular
   }
+  const [done,setDone] = useState(false);
 
   useCopilotAction(
     {
@@ -122,10 +123,31 @@ export function Presentation() {
         setCurrentSlideIndex(updatedSlides.length - 1);
         await new Promise((resolve) => setTimeout(resolve, 500));
       }
-
     },
   );
 
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if(allSlides.length>0 && done === false){
+        setDone(true);
+      }
+    }, 2000);
+    return () => clearTimeout(timeout);
+  }, [allSlides]);
+
+  useEffect(() => {
+    async function generateSlides(number:number){
+      setRandomSlideTaskRunning(true);
+      for(let i=0;i<number && number>allSlides.length;i++){
+        await addSlide.run(context);
+      }
+      setRandomSlideTaskRunning(false);
+      setDone(false);
+    }
+    if(done){
+      generateSlides(numSlides);
+    }
+  },[done])
   
 
   function formatSlideContent(str:string) {
@@ -136,9 +158,7 @@ export function Presentation() {
   
 
   const addSlide = new CopilotTask({
-    instructions: "Create a new PowerPoint slide with a title, content, background image, and speech. The content should consist of a title, an empty newline, and a few bullet points. The speech should be a few sentences long, clear, and smooth to read. The content must align with current slides",
-    includeCopilotActions:true,
-    includeCopilotReadable:true
+    instructions: "Make the next slide related to the overall topic of the presentation. It will be inserted after the current slide.",
   });
 
 
@@ -239,7 +259,7 @@ export function Presentation() {
                 <button
                   className="bg-blue-500 text-white font-bold py-2 px-4 rounded"
                   onClick={()=>playSpeech(allSlides[currentSlideIndex].speech)}>
-                  Play Speech
+                  Play Notes
                 </button>
               </div>
               <div className="w-full  flex flex-col overflow-auto p-6 gap-8">

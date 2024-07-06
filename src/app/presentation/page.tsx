@@ -7,16 +7,11 @@ import { CopilotSidebar } from "@copilotkit/react-ui";
 import "@copilotkit/react-ui/styles.css"; 
 import {Presentation} from "../components/present";
 import "./styles.css";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
-let globalAudio: any = undefined;
-let globalAudioEnabled = false;
 
 const Demo = () => {
-
-  useEffect(() => {
-    
-  }, []);
+  const [numSlides, setNumSlides] = React.useState(5);
 
   return (
     <CopilotKit url="/api/copilotkit/openai">
@@ -28,10 +23,15 @@ const Demo = () => {
         }}
         clickOutsideToClose={false}
         onSubmitMessage={async (message) => {
-          console.log(message)
+            // searchmessage for number of slides user asked for  ....
+            const numbers = message.match(/\d+/g);
+            if (numbers && numbers.length > 0) {
+              setNumSlides(parseInt(numbers[0]));
+            }
+
         }}
       >
-        <Presentation/>
+        <Presentation numSlides={numSlides}/>
       </CopilotSidebar>
     </CopilotKit>
   );
